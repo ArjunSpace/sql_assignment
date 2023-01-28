@@ -24,3 +24,18 @@ SELECT * FROM city where ID = 1661;
 select * from city where COUNTRYCODE = 'JPN';
 
 
+Q7. Query a list of CITY and STATE from the STATION table.
+
+SELECT City,State FROM STATION;
+
+
+SELECT distinct(City) FROM STATION WHERE ID%2 = 0 ;
+
+
+select count(City) - count(distinct(City)) from STATION; 
+ans: 13
+
+
+
+
+
