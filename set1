@@ -93,6 +93,9 @@ round(avg(case when order_date = customer_pref_delivery_date then 1
           end)*100,2) from delivery;
 
 
+20.
+
+
 
 
 
