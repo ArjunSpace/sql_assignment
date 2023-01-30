@@ -71,6 +71,26 @@ distinct(city) from station
 where (city NOT regexp '[AEIOU]$') and (city NOT regexp '^[AEIOU]') ;
 
 
+17.
+SELECT p.product_id, p.product_name
+FROM Product p
+WHERE p.product_id NOT IN
+(SELECT s.product_id
+FROM Sales s
+WHERE s.sale_date NOT BETWEEN '2019-01-01' AND '2019-03-31') ;
+
+18.
+select distinct(author_id) as id
+from views
+where author_id = viewer_id
+order by id;
+
+19.
+
+select 
+round(avg(case when order_date = customer_pref_delivery_date then 1 
+	      else 0 
+          end)*100,2) from delivery;
 
 
 
