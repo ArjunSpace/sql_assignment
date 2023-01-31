@@ -95,7 +95,13 @@ round(avg(case when order_date = customer_pref_delivery_date then 1
 
 20.
 
+select ad_id,
+round((sum(case when action = 'Clicked' then 1 else 0 end))/
+          (sum(case when action = 'Ignored' then 0 else 1 end))*100,2) as ctr
+from ads
+group by ad_id
+order by ctr desc, ad_id;
 
 
-
+21.
 
