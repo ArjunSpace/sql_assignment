@@ -119,3 +119,56 @@ from weather w
 inner join countries c on w.country_id = c.country_id
 where month(day) = 11
 group by c.country_name;
+
+
+23.  
+
+select 
+p.product_id,
+round(sum(u.units*p.price)/ sum(u.units),2) as average_price
+from prices p
+inner join units u on p.product_id = u.product_id and
+u.purchase_date between p.start_date and p.end_date
+group by p.product_id;
+
+
+24.
+select * from activity;
+select 
+tmp.player_id,
+tmp.event_date as first_loin
+from
+(select *,
+rank() over (partition by player_id order by event_date) as login_rank
+from activity) as tmp 
+ where tmp.login_rank = 1;
+ 
+ 25.
+ 
+ select 
+tmp.player_id,
+tmp.device_id
+from
+(select *,
+rank() over (partition by player_id order by event_date) as login_rank
+from activity) as tmp 
+ where tmp.login_rank = 1;
+ 
+ 26.
+ 
+ select 
+tmp.* from
+(select
+p.product_name,
+sum(o.unit) as unit 
+from products p 
+inner join orders o on p.product_id = o.product_id 
+where month(o.order_date) = 02 
+group by p.product_name) as tmp
+where unit >=100
+
+27.
+
+select * from users
+where  mail regexp '^[a-zA-Z][a-zA-Z0-9\_\.\-]*@leetcode.com';
+
