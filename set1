@@ -105,3 +105,17 @@ order by ctr desc, ad_id;
 
 21.
 
+select team_id,
+count(*) over (partition by team_id ) teeam_size 
+from employee
+order by employee_id;
+
+22.
+select c.country_name,
+(case when avg(weather_state)<= 15 then 'Cold'
+		when avg(weather_state)>= 25 then 'Hot'
+        else 'Warm' end )as weather_type 
+from weather w 
+inner join countries c on w.country_id = c.country_id
+where month(day) = 11
+group by c.country_name;
