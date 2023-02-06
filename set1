@@ -172,3 +172,11 @@ where unit >=100
 select * from users
 where  mail regexp '^[a-zA-Z][a-zA-Z0-9\_\.\-]*@leetcode.com';
 
+29.
+select tmp.title from
+(select c.*,
+t.program_date,
+case when c.kids_content = 'Y' and c.content_type = 'Movies' then 1 else 0 end as res
+from content c 
+left join tvprogram t on c.content_id = t.content_id) tmp
+where month(tmp.program_date)=06 and res = 1;
