@@ -180,3 +180,9 @@ case when c.kids_content = 'Y' and c.content_type = 'Movies' then 1 else 0 end a
 from content c 
 left join tvprogram t on c.content_id = t.content_id) tmp
 where month(tmp.program_date)=06 and res = 1;
+
+30.
+select q.id,q.year,
+coalesce(n.npv,0)
+from queries q 
+left join npv n on (q.id, q.year) = (n.id, n.year);
