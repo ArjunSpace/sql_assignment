@@ -186,3 +186,21 @@ select q.id,q.year,
 coalesce(n.npv,0)
 from queries q 
 left join npv n on (q.id, q.year) = (n.id, n.year);
+
+32.
+select
+u.unique_id,
+e.name
+from employee2 e
+left join employeUni u on u.id = e.id;
+
+33.
+select * from
+(select 
+distinct(u.name),
+coalesce(sum(r.distance) over (partition by r.user_id order by u.name), 0) as travelled_distance 
+from users2 u 
+left join rides r on u.id = r.user_id) tmp
+order by tmp.travelled_distance desc, tmp.name asc 
+34.
+
