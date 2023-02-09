@@ -204,3 +204,37 @@ left join rides r on u.id = r.user_id) tmp
 order by tmp.travelled_distance desc, tmp.name asc 
 34.
 
+35.
+with cte as (select user_id, count(rating) as count from movierating group by user_id)
+select u.name from cte 
+inner join users3 u on cte.user_id = u.user_id 
+order by cte.count desc limit 1; 
+
+with cte as (select movie_id, avg(rating) as avg_rat from movierating
+where month(created_at) = '02' group by movie_id)
+select m.title from cte 
+inner join movies m on cte.movie_id = m.movie_id
+order by avg_rat desc limit 1
+
+
+36.
+with cte as (select user_id, sum(distance) as distance  from rides2 group by user_id )
+select u.name,coalesce(cte.distance,0) as travelled_distance from cte
+right join users4 u on cte.user_id = u.id
+order by cte.distance desc, u.name 
+
+37.repeated
+38.
+select distinct(tmp.id), tmp.name from
+(select s.*,d.name as d_name from students s
+left join departments2 d on s.department_id = d.id) tmp 
+where tmp.d_name is null
+
+OR 
+select distinct(id) , name from students 
+where department_id not in (select id from departments2)
+
+38.
+
+
+
