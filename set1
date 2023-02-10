@@ -234,7 +234,40 @@ OR
 select distinct(id) , name from students 
 where department_id not in (select id from departments2)
 
-38.
+39.
+select LEAST(from_id,to_id) as person1,
+GREATEST(from_id,to_id) as person2,
+COUNT(*) as call_count,
+SUM(duration) as total_duration
+from Calls
+group by person1,person2;
 
+40.
+23 query
+41.
+with cte as(select w.name, p.width*p.length*p.height as volume, w.units as units
+from warehouse w 
+join products1 p on w.product_id = p.product_id) 
+select name, sum(volume*units) as volume from cte
+group by name
+
+42.
+select sale_date,
+sum(case
+               when fruit = 'APPLES' then sold_num
+               when fruit = 'Oranges' then -sold_num
+end) as difference
+from sales2
+group by sale_date
+
+43.
+with cte as (select player_id , 
+			lead(event_date,1) over(partition by player_id) - event_date as diff from activity),
+     cte2 as (select count(*) as count1 from cte where diff = 1 )
+select 
+round(count1 / (select count(distinct player_id) from activity),2) as fraction  from cte2
+
+
+44.
 
 
