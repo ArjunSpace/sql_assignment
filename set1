@@ -269,5 +269,52 @@ round(count1 / (select count(distinct player_id) from activity),2) as fraction  
 
 
 44.
+select tmp.manager from
+(select e.name as manager, count(e.name) as reportee_count
+from employee1 e 
+inner join (select manager_id from employee1) mgr 
+on e.id = mgr.manager_id
+group by e.name) tmp
+where tmp.reportee_count >=5
 
+   OR
+   
+SELECT name FROM employee1 
+WHERE id = (SELECT manager_id FROM employee1
+	    GROUP BY manager_id
+	    HAVING COUNT(manager_id) >= 5);
+
+
+45.
+select d.dept_name, coalesce(count(s.student_id),0) as student_number from
+department3 d 
+left join students1 s on d.dept_id= s.dept_id 
+group by d.dept_name
+order by student_number desc
+
+46.
+select customer_id from 
+customer c 
+left join prod p on c.product_key = p.product_key 
+group by customer_id 
+having count(distinct c.product_key )  = (select count(product_key ) from prod)
+
+
+47.
+
+select tmp.project_id, tmp.employee_id from( 
+select p.*,e.name, e.experience_years,
+rank() over (partition by project_id order by experience_years desc ) as ranks
+from project p 
+inner join employ e on p.employee_id = e.employee_id) tmp
+where ranks = 1
+
+48.
+
+49.
+select t.student_id, t.course_id, t.grade from(        
+select e.*,
+row_number() over (partition by student_id order by grade desc ) as ranks
+from enrollments e)t 
+where ranks = 1 
 
