@@ -1,0 +1,49 @@
+51.
+    select name,population,area from world 
+    where area >= 3000000 or population >=25000000;
+    
+ 52.
+         
+    select name from customer 
+    where refree_id not like 2 or refree_id is null;
+    
+ 53.
+ 
+     select name from customers
+     where id not in (select customer_id from orders)
+     
+           OR 
+           
+      select name from (
+      select c.id, c.name, o.id as order_id from customers c
+      left join orders o on c.id = o.customer_id)tmp 
+      where order_id is null
+
+  54.
+      select employee_id,
+      count(employee_id) over (partition by team_id ) as team_size
+      from employee
+      order by employee_id
+  55.
+      
+  56.
+      select player_id , device_id from 
+      (select *,
+      rank() over (partition by player_id order by event_date) as ranks
+      from activity) tmp 
+      where ranks = 1
+  57.
+        with cte as (select customer_number, count(order_number) as total_orders from orders 
+        group by customer_number) 
+        select customer_number from cte
+        order by total_orders desc limit 1
+        
+   58.
+        select distinct c1.seat_id from cinema c1
+        inner join cinema c2 
+        on abs(c1.seat_id - c2.seat_id) = 1
+        where c1.free = 1 and c2.free = 1
+        order by seat_id
+   59.
+   
+   
