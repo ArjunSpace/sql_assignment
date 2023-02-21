@@ -45,5 +45,64 @@
         where c1.free = 1 and c2.free = 1
         order by seat_id
    59.
+        with cte as(
+        select o.*,c.name as c_name
+        from orders o left join 
+        company c on o.company_id = c.company_id),
+        cte2 as(
+        select distinct s.*, cte.c_name from cte 
+        right join sales_person s on cte.sales_id = s.sales_id )
+        select name from cte2
+        where name not in (select name from cte2 where c_name like 'RED') 
+        or name is null
+        
+   60.
+   
+         select *, 
+                CASE when x+y > z then 'Yes' else 'No'   
+                end  as triangle
+         from triangle
+  61.
+        select p.x, p1.x,
+        abs(p.x-p1.x) as distance 
+        from point p 
+        inner join point p1 on p.x != p1.x 
+        order by distance limit 1
+        
+   62.
+        with cte as ( select actor_id,director_id, count(timestamp) as counts from actor_director group by 1,2)
+        select * from cte 
+        where counts >=3
+   63.
+  
+        select p.product_name,s.year, s.price 
+        from sales s left join product p 
+        on s.product_id = p.product_id;
+
+   64.
+        with cte as(
+        select p.*, e.experience_years
+        from project p left join employ e 
+        on p.employee_id = e.employee_id)
+        select project_id, round(avg(experience_years),2) as average_years from cte 
+        group by project_id;
+        
+        
+                  OR 
+                  
+        select p.project_id, round(avg(e.experience_years),2) as average_years
+        from project p left join employ e 
+        on p.employee_id = e.employee_id
+        group by p.project_id        
+ 
+ 65.
+        select seller_id from sales
+        group by seller_id
+        having sum(price) = (select sum(price) from sales group by seller_id 
+                             order by sum(price) desc limit 1)
+66.
+
+
+   
    
    
