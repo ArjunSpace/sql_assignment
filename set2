@@ -146,4 +146,601 @@
             order by start_id
 
 70.
+        select a.student_id, a.student_name, b.subject_name, count(c.subject_name) as attended_exams
+        from Students as a
+        join Subjects as b
+        left join Examinations as c
+        on a.student_id = c.student_id and b.subject_name = c.subject_name
+        group by a.student_id, b.subject_name;
+        
+71.
+
+select e3.employee_id from Employees e1, Employees e2, Employees e3
+where e1.manager_id = 1 and e2.manager_id = e1.employee_id and e3.manager_id = e2.employee_id and e3.employee_id != 1;
+72.
+SELECT DATE_FORMAT(trans_date, '%Y-%m') AS month, country
+       , COUNT(1) AS trans_count
+       , COUNT(if(state = 'approved', 1, NULL)) AS approved_count
+       , SUM(amount) AS trans_total_amount
+       , SUM(if(state = 'approved', amount, 0)) AS approved_total_amount
+FROM Transactions
+GROUP BY month, country;
+
+73.
+SELECT ROUND(AVG(percentage),2) AS average_daily_percent
+FROM (
+SELECT action_date, 
+(COUNT(DISTINCT b.post_id)/COUNT(DISTINCT a.post_id))*100 AS percentage 
+FROM Actions AS a
+LEFT JOIN Removals AS b
+ON a.post_id = b.post_id
+WHERE a.action = 'report'
+AND a.extra = 'spam'
+GROUP BY a.action_date
+) AS tmp;
+
+74.
+
+WITH CTE AS (
+SELECT
+player_id, min(event_date) as event_start_date
+from
+Activity
+group by player_id )
+
+SELECT
+round((count(distinct c.player_id) / (select count(distinct player_id) from Activity)),2)as fraction
+FROM
+CTE c
+JOIN Activity a
+on c.player_id = a.player_id
+and datediff(c.event_start_date, a.event_date) = -1;
+
+75.
+
+WITH CTE AS (
+SELECT
+player_id, min(event_date) as event_start_date
+from
+Activity
+group by player_id )
+
+SELECT
+round((count(distinct c.player_id) / (select count(distinct player_id) from Activity)),2)as fraction
+FROM
+CTE c
+JOIN Activity a
+on c.player_id = a.player_id
+and datediff(c.event_start_date, a.event_date) = -1;
+
+
+76.
+SELECT 
+    t1.company_id,
+    t1.employee_id,
+    t1.employee_name,
+    ROUND(CASE WHEN t2.max_sal >= 1000 AND t2.max_sal <= 10000 then salary * 0.76
+        WHEN t2.max_sal > 10000 THEN salary * 0.51 
+        Else salary end, 0) as salary
+FROM Salaries as t1 JOIN (SELECT company_id, MAX(salary) as max_sal FROM Salaries GROUP BY 1) as t2
+ON t1.company_id = t2.company_id;
+
+
+77.
+select a.sale_date, a.sold_num - b.sold_num
+from Sales a left join Sales b
+on a.sale_date = b.sale_date
+where a.fruit = 'apples' and b.fruit = 'oranges';
+
+
+78.
+
+
+select e.left_operand, e.operator, e.right_operand,
+    case
+        when e.operator = '<' then if(l.value < r.value,'true','false')
+        when e.operator = '>' then if(l.value > r.value,'true','false')
+        else if(l.value = r.value,'true','false')
+    end as value
+from Expressions e 
+left join Variables l on e.left_operand = l.name 
+left join Variables r on e.right_operand = r.name;
+
+
+
+79.
+SELECT user_name AS results FROM
+(
+SELECT a.name AS user_name, COUNT(*) AS counts FROM MovieRating AS b
+    JOIN Users AS a
+    on a.user_id = b.user_id
+    GROUP BY b.user_id
+    ORDER BY counts DESC, user_name ASC LIMIT 1
+) first_query
+UNION
+SELECT movie_name AS results FROM
+(
+SELECT c.title AS movie_name, AVG(d.rating) AS rate FROM MovieRating AS d
+    JOIN Movies AS c
+    on c.movie_id = d.movie_id
+    WHERE substr(d.created_at, 1, 7) = '2020-02'
+    GROUP BY d.movie_id
+    ORDER BY rate DESC, movie_name ASC LIMIT 1
+) second_query;
+
+
+80.
+
+SELECT
+ co.name AS country
+FROM
+ Person p
+ JOIN
+     Country co
+     ON SUBSTRING(phone_number,1,3) = country_code
+ JOIN
+     Calls c
+     ON p.id IN (c.caller_id, c.callee_id)
+GROUP BY
+ co.name
+HAVING
+ AVG(duration) > (SELECT AVG(duration) FROM Calls);
+ 
+ 
+ 81.
+ SELECT NAME FROM STUDENTS WHERE MARKS > 75 ORDER BY RIGHT(NAME,3), ID ASC;
+ 
+ 82.
+ SELECT name FROM Employee ORDER BY name;
+ 83.
+ SELECT name FROM Employee WHERE salary > 2000 AND months < 10 ORDER BY employee_id;
+ 84.
+ SELECT CASE
+WHEN A + B <= C OR A + C <= B OR B + C <= A THEN 'Not A Triangle'
+WHEN A = B AND B = C THEN 'Equilateral'
+WHEN A = B OR B = C OR A = C THEN 'Isosceles'
+ELSE 'Scalene'
+END
+FROM TRIANGLES;
+
+86.
+SELECT
+  item_type,
+  SUM(square_footage) AS total_sqft,
+  COUNT(*) AS item_count
+FROM inventory
+GROUP BY item_type;
+
+87.
+SELECT 
+  EXTRACT(MONTH FROM curr_month.event_date) AS mth, 
+  COUNT(DISTINCT curr_month.user_id) AS monthly_active_users 
+FROM user_actions AS curr_month
+WHERE EXISTS (
+  SELECT last_month.user_id 
+  FROM user_actions AS last_month
+  WHERE last_month.user_id = curr_month.user_id
+    AND EXTRACT(MONTH FROM last_month.event_date) =
+    EXTRACT(MONTH FROM curr_month.event_date - interval '1 month')
+)
+  AND EXTRACT(MONTH FROM curr_month.event_date) = 7
+  AND EXTRACT(YEAR FROM curr_month.event_date) = 2022
+GROUP BY EXTRACT(MONTH FROM curr_month.event_date);
+
+88.
+WITH RECURSIVE cte AS (
+  SELECT searches, num_users as NU FROM search_frequency
+
+UNION ALL
+  
+SELECT cte.searches,
+cte.NU - 1
+FROM cte WHERE NU > 0
+)
+
+select PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY searches) AS median FROM cte
+WHERE nu > 0;
+
+
+89.
+
+WITH payment_status AS (
+SELECT
+  advertiser.user_id,
+  advertiser.status,
+  payment.paid
+FROM advertiser
+LEFT JOIN daily_pay AS payment
+  ON advertiser.user_id = payment.user_id
+
+UNION
+
+SELECT
+  payment.user_id,
+  advertiser.status,
+  payment.paid
+FROM daily_pay AS payment
+LEFT JOIN advertiser
+  ON advertiser.user_id = payment.user_id
+)
+
+SELECT
+  user_id,
+  CASE WHEN paid IS NULL THEN 'CHURN'
+  	WHEN status != 'CHURN' AND paid IS NOT NULL THEN 'EXISTING'
+  	WHEN status = 'CHURN' AND paid IS NOT NULL THEN 'RESURRECT'
+  	WHEN status IS NULL THEN 'NEW'
+  END AS new_status
+FROM payment_status
+ORDER BY user_id;
+
+90.
+
+--Q90.
+--server_utilization Table:
+create table if not exists server_utilization
+(
+    server_id int,
+    status_time TIMESTAMP,
+    session_status VARCHAR(50)
+);
+
+insert into server_utilization VALUES(1,'08/02/2022 10:00:00','start'),(1,'08/04/2022 10:00:00','stop  '),(2,'08/17/2022 10:00:00','start'),(2,'08/24/2022 10:00:00','stop');
+
+
+select * from server_utilization;
+
+--Write a query that calculates the total time that the fleet of servers was running. The output should be in units of full days.
+
+
+
+--Q91.
+--transactions Table:
+create table if not exists transactions
+(
+    transaction_id int,
+    merchant_id int,
+    credit_card_id INT,
+    amount int,
+    transaction_timestamp datetime
+);
+
+
+insert into transactions values (1,101,1,100,'09/25/2022 12:00:00'),(2,101,1,100,'09/25/2022'),(3,101,1,100,'09/25/2022 12:28:00'),(4,102,2,300,'09/25/2022 12:00:00'),(6,102,2,400,'09/25/2022 14:00:00');
+
+select * from transactions;
+
+--Sometimes, payment transactions are repeated by accident; it could be due to user error, API failure or a retry error that causes a credit card to be charged twice. Using the transactions table, identify any payments made at the same merchant with the same credit card for the same amount within 10 minutes of each other. Count such repeated payments.
+WITH payments AS (
+  SELECT 
+    merchant_id, 
+    EXTRACT(EPOCH FROM transaction_timestamp - 
+      LAG(transaction_timestamp) OVER(
+        PARTITION BY merchant_id, credit_card_id, amount 
+        ORDER BY transaction_timestamp)
+    )/60 AS minute_difference 
+  FROM transactions) 
+
+SELECT COUNT(merchant_id) AS payment_count
+FROM payments 
+WHERE minute_difference <= 10;
+
+
+--Q92.
+--orders Table:
+create table if not exists orders
+(
+    order_id int,
+    customer_id int,
+    trip_id INT,
+    status enum ('completed,successfully','completed incorrectly', 'never received'),
+    order_timestamp timestamp
+);
+
+insert into orders VALUES (727424,8472,100463,'completed successfully','06/05/2022 09:12:00'),(242513,2341,100482,'completed incorrectly','06/05/2022 14:40:00'),(141367,1314,100362,'completed incorrectly','06/07/2022 15:03:00'),(582193,5421,100657,'never_received','07/07/2022 15:22:00'),(253613,1314,100213,'completed successfully','06/12/2022 13:43:00');
+
+
+select * from orders;
+
+--trips Table:
+create table if not exists trips
+(
+    dasher_id int,
+    trip_id int,
+    estimated_delivery_timestamp timestamp,
+    actual_delivery_timestamp timestamp
+);
+
+insert into trips VALUES (101,100463,'06/05/2022 09:42:00','06/05/2022 09:38:00'),(102,100482,'06/05/2022 15:10:00','06/05/2022 15:46:00'),(101,100362,'06/07/2022 15:33:00','06/07/2022 16:45:00'),(102,100657,'07/07/2022 15:52:00','-'),(103,100213,'06/12/2022 14:13:00','06/12/2022 14:10:00');
+
+select * from trips;
+
+--customers Table:
+create table if not exists customers
+(
+    customer_id int,
+    signup_timestamp timestamp
+);
+
+insert into customers VALUES (8472,'05/30/2022 00:00:00'),(2341,'06/01/2022 00:00:00'),(1314,'06/03/2022 00:00:00'),(1435,'06/05/2022 00:00:00'),(5421,'06/07/2022 00:00:00');
+
+select * from customers;
+
+--Write a query to find the bad experience rate in the first 14 days for new users who signed up in June 2022. Output the percentage of bad experience rounded to 2 decimal places.
+
+
+
+--Q93
+--Table: Scores
+create table if not exists Scores
+(
+    player_name VARCHAR(50),
+    gender VARCHAR(50),
+    day DATE,
+    score_points int,
+    constraint pk PRIMARY KEY (gender, day)
+);
+
+insert into Scores VALUES ('Aron','F','2020-01-01',17),('Alice','F','2020-01-07',23),('Bajrang','M','2020-01-07',7),('Khali','M','2019-12-25',11),('Slaman','M','2019-12-30',13),('Joe','M','2019-12-31',3),('Jose','M','2019-12-18',2),('Priya','F','2019-12-31',23),('Priyanka','F','2019-12-30',17);
+
+
+--Write an SQL query to find the total score for each gender on each day. Return the result table ordered by gender and day in ascending order. The query result format is in the following example.
+select s1.gender, s1.day, sum(s2.score_points) as total from Scores s1, Scores s2
+where s1.gender = s2.gender and s1.day >= s2.day
+group by s1.gender, s1.day
+order by s1.gender, s1.day;
+
+
+
+--Q94.
+--Table Person:
+create table if not exists Person
+(
+    id int,
+    name VARCHAR(50),
+    phone_number VARCHAR(50),
+    constraint pk PRIMARY KEY (id)
+);
+
+insert into Person VALUES (3,'Jonathan','051-1234567'),(12,'Elvis','051-7654321'),(1,'Moncef','212-1234567'),(2,'Maroua','212-6523651'),(7,'Meir','972-1234567'),(9,'Rachel','972-0011100');
+
+select * from Person;
+
+--Country table:
+create table if not exists Country
+(
+    name VARCHAR(50),
+    country_code VARCHAR(50),
+    constraint pk PRIMARY KEY (country_code)
+);
+
+insert into Country VALUES ('Peru',51),('Israel',972),('Morocco',212),('Germany',49),('Ethiopia',251);
+
+select * from Country;
+
+--Table Calls:
+create table if not exists Calls
+(
+    caller_id int,
+    callee_id int,
+    duration int
+);
+
+insert into Calls VALUES (1,9,33),(2,9,4),(1,2,59),(3,12,102),(3,12,330),(12,3,5),(7,9,13),(7,1,3),(9,7,1),(1,7,7);
+
+select * from Calls;
+
+--Write an SQL query to find the countries where this company can invest.
+--Return the result table in any order.
+SELECT
+ co.name AS country
+FROM
+ Person p
+ JOIN
+     Country co
+     ON SUBSTRING(phone_number,1,3) = country_code
+ JOIN
+     Calls c
+     ON p.id IN (c.caller_id, c.callee_id)
+GROUP BY
+ co.name
+HAVING
+ AVG(duration) > (SELECT AVG(duration) FROM Calls);
+
+
+ --Q95.
+--Table: Numbers
+create table if not exists Numbers
+(
+    num int,
+    frequency int,
+    constraint pk PRIMARY KEY (num)
+);
+
+insert into Numbers VALUES (0,7),(1,1),(2,3),(3,1);
+
+select * from Numbers;
+
+--Write an SQL query to report the median of all the numbers in the database after decompressing the Numbers table. Round the median to one decimal point.
+SET @rowindex := -1;
+ 
+SELECT
+   AVG(d.frequency) as Median 
+FROM
+   (SELECT @rowindex:=@rowindex + 1 AS rowindex,
+           Numbers.frequency AS frequency
+    FROM Numbers
+    ORDER BY Numbers.frequency) AS d
+WHERE
+d.rowindex IN (FLOOR(@rowindex / 2), CEIL(@rowindex / 2));
+
+
+--Q96.
+--Table: Salary
+create table if not exists Salary
+(
+    id int,
+    employee_id int,
+    amount int,
+    pay_date date,
+    constraint pk PRIMARY KEY (id)
+);
+
+insert into Salary VALUES (1,1,9000,'2017/03/31'),(2,2,6000,'2017/03/31'),(3,3,10000,'2017/03/31'),(4,1,7000,'2017/02/28'),(5,2,6000,'2017/02/28'),(6,3,8000,'2017/02/28');
+
+select * from Salary;
+
+--Employee table:
+create table if not exists Employee
+(
+    employee_id int,
+    department_id int,
+    constraint pk PRIMARY KEY (employee_id)
+);
+
+insert into Employee VALUES (1,1),(2,2),(3,2);
+
+--Write an SQL query to report the comparison result (higher/lower/same) of the average salary of employees in a department to the company's average salary. Return the result table in any order.
+select 
+    pay_month,
+    department_id, 
+    case when dept_avg > comp_avg then 'higher' when dept_avg < comp_avg then 'lower' else 'same' end comparison
+from (
+        select  date_format(b.pay_date, '%Y-%m') pay_month, a.department_id, avg(b.amount) dept_avg,  d.comp_avg
+        from Employee a 
+        inner join Salary b
+            on (a.employee_id = b.employee_id) 
+        inner join (select date_format(c.pay_date, '%Y-%m') pay_month, avg(c.amount) comp_avg 
+                    from Salary c 
+                    group by date_format(c.pay_date, '%Y-%m')) d 
+            on ( date_format(b.pay_date, '%Y-%m') = d.pay_month)
+group by date_format(b.pay_date, '%Y-%m'), department_id, d.comp_avg) final;
+
+
+--Q97.
+--Table: Activity
+create table if not exists Activity
+(
+    player_id int,
+    device_id int,
+    event_date date,
+    games_played int,
+    constraint pk PRIMARY KEY (player_id, event_date)
+);
+
+
+insert INTO Activity VALUES (1,2,'2016-03-01',5),(1,2,'2016-03-02',6),(2,3,'2017-06-25',1),(3,1,'2016-03-01',0),(3,4,'2016-07-03',5);
+
+
+select * from Activity;
+
+--Write an SQL query to report for each install date, the number of players that installed the game on that day, and the day one retention.Return the result table in any order.
+
+select a1.event_date as install_dt, count(a1.player_id) as installs, round(count(a3.player_id) / count(a1.player_id), 2) as Day1_retention
+    from Activity a1 left join Activity a2
+    on a1.player_id = a2.player_id and a1.event_date > a2.event_date
+    left join Activity a3
+    on a1.player_id = a3.player_id and datediff(a3.event_date, a1.event_date) = 1
+    where a2.event_date is null
+    group by a1.event_date;
+
+
+--Q98.
+--Table: Players
+create table if not exists Players
+(
+    player_id int,
+    group_id int,
+    constraint pk PRIMARY KEY (player_id)
+);
+
+insert into Players VALUES (15,1), (25,1), (30,1), (45,1), (10,2), (35,2), (50,2), (20,3), (40,3);
+
+select * from Players;
+
+--Table: Matches
+create table if not exists Matches
+(
+    match_id int,
+    first_player int,
+    second_player int,
+    first_score int,
+    second_score int,
+    constraint pk PRIMARY KEY (match_id)
+);
+
+insert into Matches VALUES (1,15,45,3,0),(2,30,25,1,2),(3,30,15,2,0),(4,40,20,5,2),(5,35,50,1,1);
+
+select * from Matches;
+
+--Write an SQL query to find the winner in each group.
+--Return the result table in any order.
+
+select group_id,player_id from 
+(select group_id,player_id,sum((
+    case when player_id = first_player then first_score
+         when player_id = second_player then second_score
+         end
+)) as totalScores
+from Players p,Matches m
+where p.player_id = m.first_player
+or p.player_id = m.second_player
+group by group_id,player_id
+order by group_id,totalScores desc,player_id) as temp
+group by group_id
+order by group_id,totalScores desc,player_id;
+
+
+
+--Q99.
+--Table: Student
+create table if not exists Student
+(
+    student_id int,
+    student_name VARCHAR(50),
+    constraint pk PRIMARY KEY (student_id)
+);
+
+
+insert into Student VALUES (1,'Daniel'),(2,'Jade'),(3,'Stella'),(4,'Jonathan'),(5,'Will');
+
+select * from Student;
+
+--Table: Exam
+create table if not exists Exam
+(
+    exam_id int,
+    student_id int,
+    score int,
+    constraint pk PRIMARY KEY (exam_id, student_id)
+);
+
+insert into Exam VALUES (10,1,70),(10,2,80),(10,3,90),(20,1,80),(30,1,70),(30,3,80),(30,4,90),(40,1,60),(40,2,70),(40,4,80);
+
+select * from Exam;
+
+
+--Write an SQL query to report the students (student_id, student_name) being quiet in all exams. Do not return the student who has never taken any exam.Return the result table ordered by student_id.
+select 
+   Student.*
+from Exam 
+inner join Student on Student.student_id=Exam.student_id
+group by student_id 
+having max(score) not in (select max(score) from Exam) 
+   and min(score) not in (select min(score) from Exam);
+
+
+--Q100.
+--Table: Student
+--Exam table:
+--Write an SQL query to report the students (student_id, student_name) being quiet in all exams. Do not return the student who has never taken any exam.Return the result table ordered by student_id.
+select 
+   Student.*
+from Exam 
+inner join Student on Student.student_id=Exam.student_id
+group by student_id 
+having max(score) not in (select max(score) from Exam) 
+   and min(score) not in (select min(score) from Exam);
+
+
 
