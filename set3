@@ -1,0 +1,1625 @@
+
+-- Q.101 Write an SQL query to show the second most recent activity of each user.
+-- If the user only hAS one activity, return that one. A user cannot perform more than one activity at the same time.
+-- Return the result table in any order.
+
+
+CREATE TABLE user_activity(
+		username VARCHAR(20),
+		activity VARCHAR(20),
+		start_date DATE,
+		end_date DATE
+	);
+
+
+INSERT INTO user_activity VALUES
+		('ALICE','TRAVEL','2020-02-12','2020-02-20'),
+		('ALICE','DANCING','2020-02-21','2020-02-23'),
+		('ALICE','TRAVEL','2020-02-24','2020-02-28'),
+		('BOB','TRAVEL','2020-02-11','2020-02-18'); 
+
+
+        
+WITH temp_activity AS (
+                        SELECT 
+                                username, 
+                                activity, 
+                                start_date, 
+                                end_date,
+                                ROW_NUMBER() OVER(PARTITION BY username ORDER BY start_date, end_date) row_num,
+                                COUNT(*) OVER(PARTITION BY username ORDER BY start_date, end_date
+                                                rows between unbounded preceding and unbounded following) total_activities
+                        FROM 
+                                user_activity
+            ),
+    temp_activity2 AS (
+                        SELECT 
+                                username, 
+                                activity, 
+                                start_date, 
+                                end_date,
+                                IF(total_activities = 1 and row_num = 1, 2, row_num) AS ranking
+                        FROM 
+                                temp_activity
+            )
+ 
+SELECT 
+        username, 
+        activity, 
+        start_date, 
+        end_date 
+FROM 
+        temp_activity2
+WHERE 
+        ranking = 2;
+
+
+
+-- Q.102 SAME AS 101
+
+
+-- Q.103 Query the name of any student in students who scored higher than 75 Marks. Order your output 
+-- by the last three characters of each name. If two or more students both have names ending in the same 
+-- last three characters (i.e.: Bobby, Robby, etc.), secondary sort them by ascending id.
+
+
+CREATE TABLE students(
+		id INT,
+		name VARCHAR(20),
+		marks INT
+	);
+
+
+INSERT INTO students VALUES
+		(1,'ASHLEY',81),
+		(2,'SAMANTHA',75),
+		(3,'JULIA',76),
+		(4,'BELVET',84);
+
+
+
+SELECT 
+        name 
+FROM 
+        students 
+WHERE 
+        marks > 75 
+ORDER BY 
+        RIGHT(name,3),
+        id;
+
+
+-- Q.104 Write a Query that prints a list of employee names (i.e.: the name attribute) 
+-- for employees in employee HAVING a salary greater than $2000 per month who have 
+-- been employees for less than 10 months. Sort your result by ascending employee_id.
+
+
+CREATE TABLE employee(
+		employee_id INT,
+		name VARCHAR(20),
+		month INT,
+		salary INT
+	);
+
+
+INSERT INTO employee VALUES
+		(12228,'ROSE',15,1968),
+		(33645,'ANGELA',1,3443),
+		(45692,'FRANK',17,1608),
+		(56118,'PATRICK',7,1345),
+		(59725,'LISA',11,2330),
+		(74197,'KIMBERLY',16,4372),
+		(78454,'BONNIE',8,1771),
+		(83565,'MICHAEL',6,2017),
+		(98607,"TODD",5,3396),
+		(99989,'JOE',9,3573);
+
+
+
+SELECT 
+        name 
+FROM 
+        employee 
+WHERE 
+        salary > 2000 
+        AND 
+        months < 10 
+ORDER BY 
+        employee_id;
+
+
+
+-- Q.105 Write a Query identifying the type of each record in the TRIANGLES table using its three side lengths.
+
+
+CREATE TABLE triangles(
+		a INT,
+		b INT,
+		c INT
+	);
+
+
+INSERT INTO triangles VALUES
+		(20,20,23),
+		(20,20,20),
+		(20,21,22),
+		(13,14,30);
+
+
+
+SELECT 
+		a,
+		b,
+        c, 
+        CASE
+			WHEN a + b <= c OR b + c <= a OR a + c <= b THEN 'NOT A TRIANGLE'
+			WHEN a = b AND b = c THEN 'EQUILATERAL' 
+			WHEN a = b OR b = c OR c = a THEN 'ISSOCELES' 
+            WHEN a <> b AND b <> c THEN 'SCALEAN'
+            END AS type_of_triangle
+FROM 
+		triangles;
+
+
+
+-- Q.106 Write a query calculating the amount of error (i.e.: actual - miscalculated average monthly salaries), 
+-- and round it up to the next integer.
+
+
+CREATE TABLE employees(
+		id INT,
+		name VARCHAR(20),
+		salary INT
+	);
+
+INSERT INTO employees VALUES
+		(1,'KRISTEEN',1420),
+		(2,'ASHLEY',2006),
+		(3,'JULIA',2210),
+		(4,'MARIA',3000);
+
+
+SELECT 
+        ceil(avg(salary) - avg(replace(salary, '0', ''))) AS error
+FROM 
+        employees;
+
+
+-- Q.107 Write a query to find the maximum total earnings for all employees as
+-- well as the total number of employees who have maximum total earnings. 
+-- Then print these values as 2 space-separated integers.
+
+
+CREATE TABLE employee(
+		employee_id INT,
+		name VARCHAR(20),
+		months INT,
+		salary INT
+	);
+
+
+INSERT INTO employee VALUES
+		(12228,'ROSE',15,1968),
+		(33645,'ANGELA',1,3443),
+		(45692,'FRANK',17,1608),
+		(56118,'PATRICK',7,1345),
+		(59725,'LISA',11,2330),
+		(74197,'KIMBERLY',16,4372),
+		(78454,'BONNIE',8,1771),
+		(83565,'MICHAEL',6,2017),
+		(98607,"TODD",5,3396),
+		(99989,'JOE',9,3573);
+
+
+
+SELECT 
+        MAX(salary*months) as total_earnings,
+        COUNT(*) 
+FROM 
+        employee
+WHERE 
+        (salary*months) in (
+                            SELECT 
+                                    MAX(months * salary) 
+                            FROM 
+                                    employee
+                            );
+
+
+
+-- Q.108 a. Query an alphabetically ordered list of all names in OCCUPATIONS, immediately followed 
+-- by the first letter of each profession AS a parenthetical (i.e.: enclosed in parentheses). 
+
+
+-- b. WHERE [occupation_COUNT] is the number of occurrences of an occupation in OCCUPATIONS and [occupation] 
+-- is the lowerCASE occupation name. If more than one Occupation hAS the same [occupation_COUNT], 
+-- they should be ordered alphabetically.
+
+
+CREATE TABLE occupations(
+		name VARCHAR(20),
+		occupation VARCHAR(20)
+	);
+
+
+INSERT INTO occupations VALUES
+		('SAMNATHA','DOCTOR'),
+		('JULIA','ACTOR'),
+		('MARIA','ACTOR'),
+		('MEERA','SINGER'),
+		('ASHLEY','PROFESSOR'),
+		('KETTY','PROFESSOR'),
+		('CHRISTEEN','PROFESSOR'),
+		('JANE','ACTOR'),
+		('JENNY','DOCTOR'),
+		('PRIYA','SINGER');
+
+
+
+-- a. 
+
+SELECT 
+        CONCAT(name, '(',substring(occupation, 1, 1),')') as `name(occupation)`
+FROM 
+        occupations 
+ORDER BY 
+        name;
+
+
+
+-- b. 
+
+SELECT 
+        CONCAT("There are a total of ", 
+        COUNT(*),' ', lower(occupation), 's.')  AS info
+FROM 
+        occupations 
+GROUP BY 
+        occupation 
+ORDER BY 
+        COUNT(occupation), 
+        occupation;
+
+
+
+-- Q.109 Pivot the Occupation column in OCCUPATIONS so that each Name is sorted alphabetically 
+-- and displayed underneath its corresponding Occupation. The output column headers should be 
+-- Doctor, Professor, Singer, and Actor, respectively.
+
+
+CREATE TABLE occupations(
+		name VARCHAR(20),
+		occupation VARCHAR(20)
+	);
+
+
+INSERT INTO occupations VALUES
+		('SAMNATHA','DOCTOR'),
+		('JULIA','ACTOR'),
+		('MARIA','ACTOR'),
+		('MEERA','SINGER'),
+		('ASHLEY','PROFESSOR'),
+		('KETTY','PROFESSOR'),
+		('CHRISTEEN','PROFESSOR'),
+		('JANE','ACTOR'),
+		('JENNY','DOCTOR'),
+		('PRIYA','SINGER');
+
+
+
+SELECT 
+        MAX(CASE WHEN occupation = 'Doctor' then name END) AS Doctor,
+        MAX(CASE WHEN occupation = 'Professor' then name END) AS Professor,
+        MAX(CASE WHEN occupation = 'Singer' then name END) AS Singer,
+        MAX(CASE WHEN occupation = 'Actor' then name END) AS Actor
+FROM 
+        (
+            SELECT 
+                    name,
+                    occupation,
+                    row_number() over(partition by occupation order by name) AS row_num 
+            FROM 
+                    occupations
+        ) AS base 
+GROUP BY 
+        row_num;
+
+
+
+-- Q.110 Write a query to find the node type of Binary Tree ordered by the value of the node. 
+-- Output one of the following for each node:
+-- ● Root: If node is root node.
+-- ● Leaf: If node is leaf node.
+-- ● Inner: If node is neither root nor leaf node.
+
+
+CREATE TABLE bst(
+		n INT,
+		p INT
+	);
+
+
+INSERT INTO bst VALUES
+		(1,2),
+		(3,2),
+		(6,8),
+		(9,8),
+		(2,5),
+		(8,5),
+		(5,NULL);
+
+
+
+SELECT 
+        n, 
+        CASE 
+            WHEN n NOT IN (SELECT DISTINCT p FROM bst WHERE p IS NOT NULL)  THEN 'Leaf'
+            WHEN p IS NULL THEN 'Root'
+            ELSE 'Inner'
+            END AS type
+FROM 
+        bst
+ORDER BY
+         n;
+
+
+
+-- Q.111 Given the table schemas below, write a query to print the company_code, 
+-- founder name, total number of lead managers, total number of senior managers, 
+-- total number of managers, and total number of employees. Order your output by 
+-- ascending company_code.
+
+
+CREATE TABLE company(
+		company_code VARCHAR(20),
+		founder VARCHAR(20)
+	);
+
+
+CREATE TABLE lead_manager(
+		lead_manager_code VARCHAR(20),
+		company_code VARCHAR(20)
+	);
+
+
+CREATE TABLE senior_manager(
+		senior_manager_code VARCHAR(20),
+		lead_manager_code VARCHAR(20),
+		company_code VARCHAR(20)
+	);
+
+
+CREATE TABLE manager(
+		manager_code VARCHAR(20),
+		senior_manager_code VARCHAR(20),
+		lead_manager_code VARCHAR(20),
+		company_code VARCHAR(20)
+	);
+
+
+CREATE TABLE employee(
+		employee_code VARCHAR(20),
+		manager_code VARCHAR(20),
+		senior_manager_code VARCHAR(20),
+		lead_manager_code VARCHAR(20),
+		company_code VARCHAR(20)
+	);
+
+
+INSERT INTO company VALUES
+		('C1','MONIKA'),
+		('C2','SAMANTHA');
+
+
+INSERT INTO lead_manager VALUES
+		('LM1','C1'),
+		('LM2','C2');
+
+
+INSERT INTO senior_manager VALUES
+		('SM1','LM1','C1'),
+		('SM2','LM1','C1'),
+		('SM3','LM2','C2');    
+
+
+INSERT INTO manager VALUES
+		('M1','SM1','LM1','C1'),
+		('M2','SM3','LM2','C2'),
+		('M3','SM3','LM2','C2');  
+
+
+INSERT INTO employee VALUES
+		('E1','M1','SM1','LM1','C1'),
+		('E2','M1','SM1','LM1','C1'),
+		('E3','M2','SM3','LM2','C2'),
+		('E4','M3','SM3','LM2','C2');
+
+
+
+SELECT 
+        c.company_code, 
+        c.founder, 
+        COUNT(DISTINCT lm.lead_manager_code), 
+        COUNT(DISTINCT sm.senior_manager_code),
+        COUNT(DISTINCT m.manager_code),
+        COUNT(DISTINCT e.employee_code)
+FROM 
+        company c
+INNER JOIN 
+        lead_manager lm
+ON 
+        c.company_code = lm.company_code
+INNER JOIN 
+        senior_manager sm
+ON 
+        sm.lead_manager_code = lm.lead_manager_code
+INNER JOIN  
+        manager m
+ON 
+        m.senior_manager_code = sm.senior_manager_code
+INNER JOIN  
+        employee e
+ON 
+        e.manager_code = m.manager_code
+GROUP BY 
+        c.company_code, c.founder
+ORDER BY 
+        c.company_code;
+
+
+
+-- Q.112 Write a query to print all prime numbers less than or equal to 1000. 
+-- Print your result on a single line, and use the ampersand () character as 
+-- your separator (instead of a space).
+
+
+WITH RECURSIVE number_generation AS (
+                                        SELECT 
+                                                1 num
+
+                                        UNION ALL
+
+                                        SELECT 
+                                                num + 1 
+                                        FROM 
+                                                number_generation 
+                                        WHERE 
+                                                num<1000
+                    ),
+                number_generation2 AS (
+                                        SELECT 
+                                                n1.num AS numm 
+                                        FROM 
+                                                number_generation n1
+                                        INNER JOIN 
+                                                number_generation n2
+                                        WHERE 
+                                                n1.num % n2.num = 0
+                                        GROUP BY 
+                                                n1.num
+                                        HAVING 
+                                                COUNT(n1.num) = 2
+                    )
+
+
+SELECT 
+        group_concat(numm ORDER BY numm SEPARATOR '&') AS prime_numbers 
+FROM 
+        number_generation2;
+
+
+
+-- Q.113 Write a query to print the pattern P(20).
+
+
+
+WITH RECURSIVE generate_numbers AS   
+                                    (
+                                        SELECT 
+                                                1 AS n
+
+                                        UNION 
+
+                                        SELECT 
+                                                n+1 
+                                        FROM 
+                                                generate_numbers 
+                                        WHERE 
+                                                n<20
+                                    ) 
+
+SELECT 
+        repeat('*',n) 
+FROM 
+        generate_numbers;
+
+
+
+-- Q.114 Write a query to print the pattern P(20).
+
+
+
+WITH RECURSIVE generate_numbers AS   
+                                    (
+                                        SELECT 
+                                                20 AS n
+
+                                        UNION 
+
+                                        SELECT 
+                                                n-1 
+                                        FROM 
+                                                generate_numbers 
+                                        WHERE 
+                                                n>1
+                                    ) 
+
+SELECT 
+        repeat('*',n) 
+FROM 
+        generate_numbers;
+
+
+
+-- Q.115 SAME AS Q.103
+
+
+
+-- Q.116 SAME AS Q.79
+
+
+
+-- Q.117 SAME AS Q.104
+
+
+
+-- Q.118 SAME AS Q.105
+
+
+
+-- Q.119 SAME AS Q.80
+
+
+
+-- Q.120 SAME AS Q.81
+
+
+
+-- Q.121 SAME AS Q.82
+
+
+
+-- Q.122 SAME AS Q.83
+
+
+
+-- Q.123 SAME AS Q.84
+
+
+
+-- Q.124 SAME AS Q.85
+
+
+
+-- Q.125 SAME AS Q.86
+
+
+
+-- Q.126 SAME AS Q.87
+
+
+
+-- Q.127 SAME AS Q.68
+
+
+
+-- Q.128 SAME AS Q.55
+
+
+
+-- Q.129 SAME AS Q.90
+
+
+
+-- Q.130 SAME AS Q.91
+
+
+
+-- Q.131 SAME AS Q.92
+
+
+
+-- Q.132 SAME AS Q.50
+
+
+
+-- Q.133 SAME AS Q.94
+
+
+
+-- Q.134 SAME AS Q.94
+
+
+
+-- Q.135 SAME AS Q.101
+
+
+
+-- Q.136 SAME AS Q.101
+
+
+
+-- Q.137 SAME AS Q.106
+
+
+
+-- Q.138 SAME AS Q.105
+
+
+
+-- Q.139 SAME AS Q.105
+
+
+
+-- Q.140 SAME AS Q.105
+
+
+
+-- Q.141 SAME AS Q.110
+
+
+
+-- Q.142 SAME AS Q.111
+
+
+
+-- Q.143 Write a query to output all such symmetric pairs in ascENDing order by the value of X. 
+-- List the rows such that X1 ≤ Y1.
+
+
+CREATE TABLE functions(
+		x INT,
+		y INT
+	);
+
+
+INSERT INTO functions VALUES
+		(20,20),
+		(20,20),
+		(20,21),
+		(23,22),
+		(22,23),
+		(21,20);
+
+
+
+WITH temp_functions AS (
+                        SELECT 
+                                x,
+                                y, 
+                                ROW_NUMBER() OVER (ORDER BY x, y) AS row_num
+                        FROM 
+                                functions
+                )
+
+SELECT 
+        DISTINCT f1.x, 
+        f1.y
+FROM 
+        temp_functions f1
+INNER JOIN 
+        temp_functions f2 
+ON 
+        f1.x = f2.y 
+AND 
+        f1.y = f2.x 
+AND 
+        f1.row_num <> f2.row_num
+WHERE 
+        f1.x <= f1.y
+ORDER BY 
+        f1.x;
+
+
+
+-- Q.144 Write a query to output the names of those students whose best friENDs got offered a higher 
+-- salary than them. Names must be ordered by the salary amount offered to the best friENDs. 
+-- It is guaranteed that no two students get the same salary offer.
+
+
+CREATE TABLE students(
+		id INT,
+		name VARCHAR(20)
+	);
+
+
+CREATE TABLE friends(
+		id INT,
+		friend_id INT
+	);
+
+
+CREATE TABLE packages(
+		id INT,
+		salary FLOAT
+	);
+
+
+INSERT INTO students VALUES
+		(1,'ASHLEY'),
+		(2,'SAMANTHA'),
+		(3,'JULIA'),
+		(4,'SCARLET');
+
+
+INSERT INTO friends VALUES
+		(1,2),
+		(2,3),
+		(3,4),
+		(4,1);
+
+
+INSERT INTO packages VALUES
+		(1,15.20),
+		(2,10.06),
+		(3,11.55),
+		(4,12.12);
+
+
+
+SELECT 
+        s1.name 
+FROM 
+        friends f1
+INNER JOIN 
+        students s1
+ON 
+        f1.id = s1.id
+INNER JOIN 
+        students s2
+ON 
+        f1.friend_id = s2.id
+INNER JOIN 
+        packages p1
+ON 
+        f1.id = p1.id
+INNER JOIN 
+        packages p2
+ON 
+        f1.friend_id = p2.id
+WHERE 
+        p1.salary < p2.salary
+ORDER BY 
+        p2.salary;
+
+
+
+-- Q.145 Write a query to print the respective hacker_id and name of hackers who achieved full scores for 
+-- more than one challenge. Order your output in descENDing order by the total number of challenges in 
+-- which the hacker earned a full score. If more than one hacker received full scores in the same number 
+-- of challenges, then sort them by ascending hacker_id.
+
+
+CREATE TABLE hackers(
+		hacker_id INT,
+		name VARCHAR(20)
+	);
+
+
+CREATE TABLE difficulty(
+		difficulty_level INT,
+		score INT
+	);
+
+
+CREATE TABLE challenges(
+		challenge_id INT,
+		hacker_id INT,
+		difficulty_level INT
+	);
+
+
+CREATE TABLE submissions(
+		submission_id INT,
+		hacker_id INT,
+		challenge_id INT,
+		score INT
+	);
+
+
+INSERT INTO hackers VALUES
+		(5580,'ROSE'),
+		(8439,'ANGELA'),
+		(27205,'FRANK'),
+		(52243,'PATRICK'),
+		(52348,'LISA'),
+		(57645,'KIMBERLY'),
+		(77726,'BONNIE'),
+		(83082,'MICHAEL'),
+		(86870,'TODD'),
+		(90411,'JOE');
+
+
+INSERT INTO difficulty VALUES
+		(1,20),
+		(2,30),
+		(3,40),
+		(4,60),
+		(5,80),
+		(6,100),
+		(7,120);
+
+
+INSERT INTO challenges VALUES
+		(4810,77726,4),
+		(21089,27205,1),
+		(26566,5580,7),
+		(66730,52243,6),
+		(71055,52243,2);
+ 
+
+
+SELECT 
+        h.hacker_id, 
+        h.name 
+FROM 
+        hackers h
+INNER JOIN  
+        submissions s
+ON 
+        h.hacker_id = s.hacker_id
+INNER JOIN 
+        challenges c
+ON 
+        s.challenge_id = c.challenge_id
+INNER JOIN 
+        difficulty d
+ON 
+        c.difficulty_level = d.difficulty_level
+WHERE 
+        s.score = d.score
+GROUP BY 
+        h.name, h.hacker_id
+HAVING 
+        COUNT(s.score) > 1
+ORDER BY 
+        COUNT(s.challenge_id) desc,
+        h.hacker_id;
+
+
+
+-- Q.146 Write a query to output the start and END dates of projects listed by the number of days it took 
+-- to complete the project in ascending order. If there is more than one project that have the same number 
+-- of completion days, then order by the start date of the project.
+
+
+
+CREATE TABLE projects(
+		task_id INT,
+		start_date DATE,
+		end_date DATE
+	);
+
+
+INSERT INTO projects VALUES
+		(1,'2015-10-01','2015-10-02'),
+		(2,'2015-10-02','2015-10-03'),
+		(3,'2015-10-03','2015-10-04'),
+		(4,'2015-10-13','2015-10-14'),
+		(5,'2015-10-14','2015-10-15'),
+		(6,'2015-10-28','2015-10-29'),
+		(7,'2015-10-30','2015-10-31');
+
+
+
+-- Approach 1
+
+
+WITH project_start AS 
+                    (
+                        SELECT 
+                                start_date, 
+                                ROW_NUMBER() OVER() AS ps_rownum
+                        FROM 
+                                projects
+                        WHERE start_date not in (
+                                                    SELECT 
+                                                            end_date 
+                                                    FROM 
+                                                            projects
+                                                )
+                    ),
+    project_end AS 
+                 (
+                        SELECT 
+                                end_date, 
+                                ROW_NUMBER() OVER() AS pe_rownum
+                        FROM 
+                                projects
+                        WHERE 
+                                END_date not in (
+                                                    SELECT 
+                                                            start_date 
+                                                    FROM 
+                                                            projects
+                                                )
+                )
+
+SELECT 
+        project_start.start_date, 
+        project_end.end_date
+FROM 
+        project_start
+INNER JOIN 
+        project_end
+on 
+        project_end.pe_rownum = project_start.ps_rownum
+ORDER BY 
+        DATEDIFF(project_start.start_date, project_end.end_date) desc, 
+        project_start.start_date;
+
+
+
+-- Approach 2
+
+
+
+WITH temp_project AS (
+                    SELECT 
+                            temp.start_date, 
+                            temp.end_date,
+                            SUM(
+                                CASE
+                                    WHEN previous_end_date IS NULL THEN 0
+                                    WHEN DAY(end_date) - DAY(previous_end_date) = 1 THEN 0
+                                    ELSE 1
+                                END
+                                ) OVER(ORDER BY start_date) AS project_num
+                    FROM (
+                            SELECT 
+                                    start_date, 
+                                    end_date,
+                                    LAG(end_date) OVER (ORDER BY start_date) AS previous_end_date
+                            FROM 
+                                    projects
+                    ) temp
+)
+
+SELECT 
+        MIN(start_date) AS project_start_date, 
+        MAX(end_date) as project_end_date
+FROM 
+        temp_project
+GROUP BY 
+        project_num
+ORDER BY 
+        DAY(MAX(end_date))-DAY(MIN(start_date));
+
+
+
+-- Approach 3
+
+
+
+WITH temp_project AS (
+                        SELECT 
+                                temp.start_date, 
+                                temp.end_date,
+                                SUM(
+                                    CASE
+                                    WHEN previous_end_date IS NULL THEN 0
+                                    WHEN DAY(end_date) - DAY(previous_end_date) = 1 THEN 0
+                                    ELSE 1
+                                    END
+                                    )  over(order by start_date range between unbounded preceding and current row) AS project_num
+                        FROM (
+                                SELECT 
+                                        start_date, 
+                                        end_date,
+                                        LAG(end_date) OVER (ORDER BY start_date) AS previous_end_date
+                                FROM 
+                                        projects
+                ) temp
+            )
+
+SELECT 
+        MIN(start_date) AS project_start_date,
+        MAX(end_date) AS project_end_date
+FROM 
+        temp_project
+GROUP BY 
+        project_num
+ORDER BY 
+        DAY(MAX(end_date))-DAY(MIN(start_date));
+
+
+
+
+-- Q.147 In an effort to identify high-value customers, Amazon asked for your help to obtain data 
+-- about users who go on shopping sprees. A shopping spree occurs when a user makes purchASes on 3 
+-- or more consecutive days. List the user IDs who have gone on at leASt 1 shopping spree in ascending order.
+
+
+CREATE TABLE transactions(
+		user_id INT,
+		amount FLOAT,
+		transaction_date DATETIME
+	);
+
+
+INSERT INTO transactions VALUES
+		(1,9.99,'08/01/2022 10:00:00'),
+		(1,55,'08/17/2022 10:00:00'),
+		(2,149.5,'08/05/2022 10:00:00'),
+		(2,4.89,'08/06/2022 10:00:00'),
+		(2,34,'08/07/2022 10:00:00');
+
+
+
+SELECT 
+        DISTINCT user_id 
+FROM 
+    (
+        SELECT 
+                user_id, 
+                transaction_date,
+                rn,
+                transaction_date :: date - rn::integer,
+                COUNT(transaction_date :: date - rn::integer) OVER(PARTITION BY user_id) AS cn
+        FROM
+                (
+                    SELECT 
+                            user_id, 
+                            transaction_date,
+                            ROW_NUMBER() OVER(PARTITION BY user_id ORDER BY transaction_date) AS rn
+                    FROM 
+                            transactions
+                ) temp
+    )temp1
+
+WHERE cn >=3;
+
+
+-- SOLVED IN POSTGRESQL
+
+
+
+-- Q.148 You are given a table of PayPal payments showing the payer, the recipient, and the amount paid. 
+-- A two-way unique relationship is established WHEN two people sEND money back and forth. Write a query 
+-- to find the number of two-way unique relationships in this data.
+
+
+CREATE TABLE payments(
+		payer_id INT,
+		recipient_id INT,
+		amount INT
+	);
+
+
+INSERT INTO payments VALUES
+		(101,201,30),
+		(201,101,10),
+		(101,301,20),
+		(301,101,80),
+		(201,301,70);
+
+
+WITH temp_payments AS (
+                        SELECT 
+                                DISTINCT p1.payer_id, 
+                                p1.recipient_id
+                        FROM 
+                                payments p1 
+                        INNER JOIN 
+                                payments p2
+                        ON 
+                                p1.payer_id = p2.recipient_id
+                        AND 
+                                p2.payer_id = p1.recipient_id
+                        AND 
+                                p1.payer_id < p2.payer_id
+        )
+
+SELECT 
+        COUNT(*) unique_relationships
+FROM 
+        temp_payments;
+
+
+
+-- Q.149 Write a query to obtain the list of customers whose first transaction was valued at $50 or more.
+-- Output the number of users.
+
+
+CREATE TABLE user_transactions(
+		transaction_id INT,
+		user_id INT,
+		spend FLOAT,
+		transaction_date VARCHAR(30)
+	);
+
+
+INSERT INTO user_transactions VALUES
+		(759274,111,49.50,'02/03/2022 00:00:00'),
+		(850371,111,51.00,'03/15/2022 00:00:00'),
+		(615348,145,36.30,'03/22/2022 00:00:00'),
+		(137424,156,151.00,'04/04/2022 00:00:00'),
+		(248475,156,87.00,'04/16/2022 00:00:00');
+
+
+
+WITH temp_transactions AS (
+                            SELECT 
+                                    user_id, 
+                                    transaction_date, 
+                                    spend,
+                                    ROW_NUMBER() OVER(PARTITION BY user_id ORDER BY transaction_date) row_num 
+                            FROM 
+                                    user_transactions
+                    )
+
+SELECT 
+        COUNT(DISTINCT user_id) as users
+FROM 
+        temp_transactions
+WHERE 
+        row_num = 1 
+        and 
+        spend >= 50;
+
+
+
+-- Q.150 Write a query to obtain the SUM of the odd-numbered and even-numbered meASurements on a particular day, 
+-- in two different columns.
+
+
+CREATE TABLE measurments(
+		measurment_id INT,
+		measurment_value FLOAT,
+		measurment_time DATETIME
+	);
+
+
+INSERT INTO measurments VALUES
+		(131233,1109.51,'07/10/2022 09:00:00'),
+		(135211,1662.74,'07/10/2022 11:00:00'),
+		(523542,1246.24,'07/10/2022 13:15:00'),
+		(143562,1124.50,'07/11/2022 15:00:00'),
+		(346462,1234.14,'07/11/2022 16:45:00');
+
+
+
+WITH temp_measurments AS (
+                            SELECT
+                                    measurement_value,
+                                    measurement_time,
+                                    ROW_NUMBER() OVER(PARTITION BY measurement_time::DATE ORDER BY measurement_time) row_num
+                            FROM 
+                                    measurments
+                )
+
+SELECT 
+        measurement_time::DATE,,
+        ROUND(SUM(
+            CASE
+                WHEN row_num % 2 <> 0 THEN measurment_value
+                END),2) AS odd_value,
+        ROUND(SUM(
+            CASE
+                WHEN row_num % 2 = 0 THEN measurment_value
+                END),2) AS even_value
+FROM 
+        temp_measurments
+GROUP BY 
+        measurement_time::DATE,
+ORDER BY 
+        measurement_time;
+
+
+-- SOLVED IN POSTGRESQL
+
+
+-- Q.151 SAME AS Q.147
+
+
+
+-- Q.152 The Airbnb Booking RecommENDations team is trying to understand the "substitutability" of two rentals 
+-- and whether one rental is a good substitute for another. They want you to write a query to find the unique 
+-- combination of two Airbnb rentals WITH the same exact amenities offered. Output the COUNT of the unique 
+-- combination of Airbnb rentals.
+
+
+CREATE TABLE rental_amenities(
+		rental_id INT,
+		amenity VARCHAR(20)
+	);
+
+
+INSERT INTO rental_amenities VALUES
+		(123,'POOL'),
+		(123,'KITCHEN'),
+		(234,'HOT TUB'),
+		(234,'FIREPLACE'),
+		(345,'KITCHEN'),
+		(345,'POOL'),
+		(456,'POOL');
+
+
+
+WITH temp_amenities AS (
+                        SELECT 
+                                rental_id, 
+                                amenity, 
+                                COUNT(amenity) over(partition by rental_id) AS no_of_amenities 
+                        FROM 
+                                rental_amenities
+            ),
+
+temp_amenities2 AS (
+                        SELECT 
+                                COUNT(*) 
+                        FROM 
+                                temp_amenities a
+                        inner join 
+                                temp_amenities b 
+                        on 
+                                a.no_of_amenities = b.no_of_amenities
+                        AND 
+                                a.amenity = b.amenity
+                        AND 
+                                a.rental_id<>b.rental_id
+                        GROUP BY 
+                                a.rental_id,
+                                b.rental_id, 
+                                a.no_of_amenities
+                        HAVING 
+                                COUNT(*) = a.no_of_amenities
+            )
+
+
+SELECT 
+        CEIL(COUNT(*)/2) as matching_airbnb
+FROM 
+        temp_amenities2;
+
+
+
+
+-- Q.153 Write a query to calculate the return on ad spend (ROAS) for each advertiser 
+-- across all ad campaigns. Round your answer to 2 decimal places, and order your 
+-- output by the advertiser_id.
+
+
+CREATE TABLE ad_campaigns(
+		campaign_id INT,
+		spend INT,
+		revenue FLOAT,
+		advertiser_id INT
+	);
+
+
+INSERT INTO ad_campaigns VALUES
+		(1,5000,7500,3),
+		(2,1000,900,1),
+		(3,3000,12000,2),
+		(4,500,200,4),
+		(5,100,400,4);
+
+
+SELECT 
+        advertiser_id, 
+        CAST(SUM(revenue) / SUM(spend) AS Decimal(8,2)) AS ROAS
+FROM 
+        ad_campaigns
+GROUP BY 
+        advertiser_id
+ORDER BY 
+        advertiser_id;
+
+
+
+-- Q.154 Write a query that shows the following data for each compensation outlier: 
+-- employee ID, salary, and whether they are potentially overpaid or potentially underpaid
+
+
+CREATE TABLE employee_pay(
+		employee_id INT,
+		salary INT,
+		title VARCHAR(20)
+	);
+
+
+INSERT INTO employee_pay VALUES
+		(101,80000,'DATA ANALYST'),
+		(102,90000,'DATA ANALYST'),
+		(103,100000,'DATA ANALYST'),
+		(104,30000,'DATA ANALYST'),
+		(105,120000,'DATA SCIENTIST'),
+		(106,100000,'DATA SCIENTIST'),
+		(107,80000,'DATA SCIENTIST'),
+		(108,310000,'DATA SCIENTIST');
+
+
+WITH temp_compensation AS (
+                            SELECT 
+                                    employee_id,
+                                    salary,
+                                    title,
+                                    ROUND(AVG(salary) over(PARTITION BY title),2) AS avg_salary 
+                            FROM 
+                                    employee_pay
+                ),
+    temp_compensation2 AS (
+                            SELECT
+                                    employee_id, 
+                                    salary,
+                                    CASE
+                                        WHEN salary > 2 * avg_salary THEN 'Overpaid'
+                                        WHEN salary < avg_salary/2 THEN 'Underpaid'
+                                        END AS status
+                            FROM 
+                                    temp_compensation
+                )
+
+SELECT 
+        employee_id, 
+		salary, 
+		status
+FROM 
+        temp_compensation2 
+WHERE 
+        status is not null;
+
+
+
+-- Q.155 SAME AS 148
+
+
+
+-- Q.156 Assume you are given the table below containing information on user
+-- purchASes. Write a query to obtain the number of users who purchASed the 
+-- same product on two or more different days. Output the number of unique users.
+
+
+CREATE TABLE purchases(
+		user_id INT,
+		product_id INT,
+		quantity INT,
+		purchase_date DATETIME
+	);
+
+
+INSERT INTO purchases VALUES
+		(536,3223,6,'2022-01-11 12:33:44'),
+		(827,3585,35,'2022-02-20 14:05:26'),
+		(536,3223,5,'2022-03-02 09:33:28'),
+		(536,1435,10,'2022-03-02 08:40:00'),
+		(827,2452,45,'2022-04-09 00:00:00');
+
+
+SELECT 
+        COUNT(DISTINCT user_id) AS repeat_purchasers
+FROM (
+        SELECT 
+                user_id 
+        FROM 
+                purchases
+        GROUP BY 
+                user_id, 
+                product_id
+        HAVING 
+                COUNT(DISTINCT purchase_date) > 1
+    ) temp;
+
+
+
+-- Q.157 Say you have access to all the transactions for a given merchant acCOUNT. 
+-- Write a query to print the cumulative balance of the merchant acCOUNT at the END 
+-- of each day, WITH the total balance reset back to zero at the END of the month. 
+-- Output the transaction date and cumulative balance.
+
+
+CREATE TABLE transactions(
+		transaction_id INT,
+		type ENUM('DEPOSIT','WITHDRAWL'),
+		amount FLOAT,
+		transaction_date DATETIME
+	);
+
+
+INSERT INTO transactions VALUES
+		(19153,'DEPOSIT',65.90,'07/10/2022 10:00:00'),
+		(53151,'DEPOSIT',178.55,'07/08/2022 10:00:00'),
+		(29776,'WITHDRAWL',25.90,'07/08/2022 10:00:00'),
+		(16461,'WITHDRAWL',45.99,'07/08/2022 10:00:00'),
+		(77134,'DEPOSIT',32.60,'07/10/2022 10:00:00');
+
+
+
+SELECT 
+        DISTINCT date(transaction_date),
+        SUM(
+            CASE 
+                WHEN type = 'deposit' THEN amount
+                ELSE -amount
+                END
+            ) OVER(PARTITION BY EXTRACT(MONTH FROM transaction_date) ORDER BY DATE(transaction_date)) AS balance
+FROM 
+        transactions;
+
+
+-- SOLVED IN POSTGRESQL
+
+
+
+-- Q.158 Assume you are given the table below containing information on 
+-- Amazon customers and their spend on products belonging to various 
+-- categories. Identify the top two highest-grossing products within each 
+-- category in 2022. Output the category, product, and total spend.
+
+
+CREATE TABLE product_spend(
+		category VARCHAR(20),
+		product VARCHAR(20),
+		user_id INT,
+		spend FLOAT,
+		transaction_date DATETIME
+	);
+
+
+INSERT INTO product_spend VALUES
+		('APPLIANCE','REFRIGERATOR',165,246.00,'12/26/2021 12:00:00'),
+		('APPLIANCE','REFRIGERATOR',123,299.99,'03/02/2022 12:00:00'),
+		('APPLIANCE','WASHING MACHINE',123,219.80,'03/02/2022 12:00:00'),
+		('ELECTRONICS','VACUUM',178,152.00,'04/05/2022 12:00:00'),
+		('ELECTRONICS','WIRELESS HEADSET',156,249.90,'07/08/2022 12:00:00'),
+		('ELECTRONICS','REFRIGERATOR',145,189.00,'07/15/2022 12:00:00');
+
+
+WITH temp_product_details AS (
+                                SELECT 
+                                        category, 
+                                        product,
+                                        spend,
+                                        SUM(spend) OVER(PARTITION BY category, product) total_spend
+                                FROM 
+                                        product_spend
+                                WHERE 
+                                        EXTRACT(YEAR FROM transaction_date) = 2022
+                 ),
+
+    temp_product_details1 AS (
+                                SELECT 
+                                        DISTINCT category, 
+                                        product, 
+                                        total_spend ,
+                                        DENSE_RANK() OVER(PARTITION BY category order by total_spend desc) row_num
+                                FROM 
+                                        temp_product_details
+               )
+
+
+SELECT 
+        DISTINCT category, 
+        product, 
+        total_spend 
+FROM 
+        temp_product_details1 
+WHERE 
+        row_num <=2
+ORDER BY 
+        category, 
+        total_spend DESC;
+
+
+-- SOLVED IN POSTGRESQL
+
+
+-- Q.159 Facebook is analysing its user signup data for June 2022. 
+-- Write a query to generate the churn rate by week in June 2022. 
+-- Output the week number (1, 2, 3, 4, ...) and the corresponding 
+-- churn rate rounded to 2 decimal places.
+
+
+CREATE TABLE users(
+		user_id INT,
+		signup_date DATETIME,
+		last_login DATETIME
+	);
+
+
+INSERT INTO users VALUES
+		(1001,'2022-06-01 12:00:00','2022-07-05 12:00:00'),
+		(1002,'2022-06-03 12:00:00','2022-06-15 12:00:00'),
+		(1004,'2022-06-02 12:00:00','2022-06-15 12:00:00'),
+		(1006,'2022-06-15 12:00:00','2022-06-27 12:00:00'),
+		(1012,'2022-06-16 12:00:00','2022-07-22 12:00:00');
+
+
+
+-- Approach 1
+
+
+
+WITH temp_churn_rate AS (
+                        SELECT 
+                                user_id, 
+                                signup_date, 
+                                last_login,
+                                DATEDIFF(last_login, signup_date) diff, 
+                                EXTRACT(WEEK FROM signup_date) AS week_no,
+                                WEEK(signup_date,5) -  WEEK(DATE_SUB(signup_date, INTERVAL DAYOFMONTH(signup_date)-1 DAY),5)+1 AS ranking
+                        FROM 
+                                users
+                        WHERE 
+                                EXTRACT(MONTH FROM signup_date) = 6 
+                                AND
+                                EXTRACT(YEAR FROM signup_date) = 2022
+),
+temp_churn_rate2 AS (
+                        SELECT 
+                                ranking, 
+                                COUNT(ranking) AS total_users,
+                                COUNT(
+                                CASE 
+                                    WHEN diff <= 28 THEN 1
+                                    END 
+                                    ) AS total_churns 
+                        FROM 
+                                temp_churn_rate
+                        GROUP BY 
+                                ranking
+)
+
+SELECT 
+        ranking AS week, 
+        ROUND((total_churns/total_users) * 100 ,2) AS churn_rate
+FROM 
+        temp_churn_rate2
+ORDER BY 
+        ranking;
+        
+        
+-- Approach 2
+
+
+
+WITH temp_churn_rate AS (
+                            SELECT 
+                                    user_id, 
+                                    signup_date, 
+                                    last_login,
+                                    DATEDIFF(last_login, signup_date) diff, 
+                                    EXTRACT(WEEK FROM signup_date) AS week_no,
+                                    DENSE_RANK() OVER(ORDER BY EXTRACT(WEEK FROM signup_date)) ranking
+                            FROM 
+                                    users
+                            WHERE 
+                                    EXTRACT(MONTH FROM signup_date) = 6 
+                                    AND
+                                    EXTRACT(YEAR FROM signup_date) = 2022
+        ),
+    temp_churn_rate2 AS (
+                            SELECT 
+                                    ranking, 
+                                    COUNT(ranking) AS total_users,
+                                    COUNT(
+                                    CASE 
+                                        WHEN diff <= 28 THEN 1
+                                        END 
+                                        ) AS total_churns 
+                            FROM 
+                                    temp_churn_rate
+                            GROUP BY 
+                                    ranking
+        )
+
+SELECT 
+        ranking AS week, 
+        ROUND((total_churns/total_users) * 100 ,2) AS churn_rate
+FROM 
+        temp_churn_rate2
+ORDER BY 
+        ranking;
+
+
