@@ -133,5 +133,17 @@
         
   69.
   
-  
-   
+          select min(log_id) as start_id,
+               max(log_id) as end_id 
+          from(
+                select log_id, rank() over (order by  log_id- RN ) AS ranking
+                FROM (
+                      select log_id,row_number() over(ORDER BY log_id) AS RN 
+                      FROM logs
+                     )tmp2
+              )tmp3
+            group by ranking 
+            order by start_id
+
+70.
+
