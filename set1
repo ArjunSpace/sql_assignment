@@ -142,6 +142,12 @@ from
 rank() over (partition by player_id order by event_date) as login_rank
 from activity) as tmp 
  where tmp.login_rank = 1;
+
+
+select player_id, event_date as first_login from(
+select *, 
+row_number() over(partition by player_id order by event_date) as r_num from Activity)tmp
+where r_num = 1
  
  25.
  
